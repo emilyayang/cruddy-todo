@@ -2,15 +2,30 @@ const fs = require('fs');
 const path = require('path');
 const _ = require('underscore');
 const counter = require('./counter');
+const express = require('express')
 
-var items = {};
+var items = express();
 
 // Public API - Fix these CRUD functions ///////////////////////////////////////
-
+// create
+// 1) should create a new file for each todo
+// 2) should use the generated unique id as the filename
+// 3) should only save todo text contents in file
+// 4) "before each" hook: cleanTestDatastore
+// ✓ should pass a todo object to the callback on success
+// readAll
+// readOne
+//   5) should pass a todo object to the callback on success
 exports.create = (text, callback) => {
   var id = counter.getNextUniqueId();
-  items[id] = text;
-  callback(null, { id, text });
+  items.post(`/${id}`, function (req, res) {
+    res.send(text)
+  })
+  // fs.writeFile(exports.dataDir/id, text, callback(null, { id, text }));
+
+  // var id = counter.getNextUniqueId();
+  // items[id] = text;
+  // callback(null, { id, text });
 };
 
 exports.readAll = (callback) => {
