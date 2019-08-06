@@ -37,45 +37,19 @@ exports.readAll = (callback) => {
   // Find out what todos are (we think ->00001 & 00002)
   // Return an empty array if there are no items in testData
   // Return an array with the names of all the todos ([00001,00002, etc])
-  var todos = [];
-  fs.readdir(exports.dataDir, (err, ids) => {
+  var data = [];
+  fs.readdir(exports.dataDir, (err, files) => {
     if (err) {
       callback(err, 0);
     } else {
-      _.map(ids, (id) => {
-        console.log(ids)
-        console.log(id)
-        exports.readOne(id.slice(2), (err, todos) => {
-          console.log(id)
-          if (err) {
-            callback(err, 0);
-          } else {
-            callback(null, todos)
-          }
-        })
-      })
+      files.forEach((id) => {
+        id = id.slice(0,5)
+        data.push({ id: id, text: id });
+      });
+      callback(null, data);
     }
   })
-  // var filePath = path.join(exports.dataDir, `${id}.txt`);
-  // fs.readFile(filePath, 'utf8', (err, text) => {
-  //   if (err) {
-  //     callback(err, 0);
-  //   } else {
-  //     callback(null, { id, text });
-  //   }
-  // })
-
-
-
-  // ids.forEach(id => {
-  //   console.log(id);
-  // }
-  // var data = _.map(items, (text, id) => {
-  //   return { id, text };
-  // });
-  // callback(null, data);
-  //[{ id, text },{ id, text },{ id, text }]
-};
+}
 
 exports.readOne = (id, callback) => {
   var filePath = path.join(exports.dataDir, `${id}.txt`);
