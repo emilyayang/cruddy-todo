@@ -4,49 +4,50 @@ const _ = require('underscore');
 const counter = require('./counter');
 const express = require('express')
 
-var items = express();
+// var items = express();
 
 // Public API - Fix these CRUD functions ///////////////////////////////////////
-// create
-// 1) should create a new file for each todo
-// 2) should use the generated unique id as the id
-// 3) should only save todo text contents in file
-// 4) "before each" hook: cleanTestDatastore
-// ✓ should pass a todo object to the callback on success
-// readAll
-// readOne
-//   5) should pass a todo object to the callback on success
 exports.create = (text, callback) => {
   counter.getNextUniqueId((err, id) => {
-    if (err) {
-      callback(err, 0);
-    } else {
-      var filePath = path.join(exports.dataDir, `${id}.txt`);
-      fs.writeFile(filePath, text, (err => {
-        if (err) {
-          throw err;
-        } else {
-          callback(null, { id, text });
-        }
-      }))
-    }
+    var filePath = path.join(exports.dataDir, `${id}.txt`);
+    fs.writeFile(filePath, text, (err => {
+      if (err) {
+        callback(err);
+      } else {
+        callback(null, { id, text });
+      }
+    }))
   })
 };
+
+//PROMISE.ALL checks all unresolved promises and resolves them and replaces the position of the promises in an array to keep order
 
 exports.readAll = (callback) => {
   // Find out what todos are (we think ->00001 & 00002)
   // Return an empty array if there are no items in testData
   // Return an array with the names of all the todos ([00001,00002, etc])
-  var data = [];
   fs.readdir(exports.dataDir, (err, files) => {
     if (err) {
-      callback(err, 0);
+      callback(err);
     } else {
-      files.forEach((id) => {
-        id = id.slice(0,5)
-        data.push({ id: id, text: id });
-      });
-      callback(null, data);
+      if (files.length === 0) return callback(null, []);//if empty array
+
+      var data = [];
+      for (var i = 0; i < files.length; i++) {
+        var file = files[i];
+        var id = file.slice(0, file.length - 4) //slice '.txt' off
+        exports.readOne(id, (err, object) => {
+          if (err) {
+            callback(err);
+          } else {
+            data.push(object);
+          }
+          //when theres 5 items in the array
+          if (data.length === files.length) {
+            callback(null, data);
+          }
+        })
+      }
     }
   })
 }
@@ -64,9 +65,6 @@ exports.readOne = (id, callback) => {
 
 exports.update = (id, text, callback) => {
   var filePath = path.join(exports.dataDir, `${id}.txt`)
-  // if (!filePath) {
-  //   callback(new Error(`No item with id: ${id}`));
-  // } else {
   exports.readOne(id, (err) => {
     if (err) {
       callback(err, 0);

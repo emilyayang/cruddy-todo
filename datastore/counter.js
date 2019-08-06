@@ -50,13 +50,13 @@ exports.getNextUniqueId = (callback) => {
   //use write counter on num to put into string
   readCounter((err, count) => {
     writeCounter(count + 1, (err, counterString) => {
-        callback(null, counterString);
-      })
+      callback(null, counterString);
     })
+  })
 };
 // readCounter((err, count) => {
 //   if (err) {
-//     throw ('error');
+//     throw ('error'); dont need these errors because read and write already have them
 //   } else {
 //     count++;
 //     writeCounter(count, (err, counterString) => {
