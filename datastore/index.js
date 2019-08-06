@@ -34,19 +34,56 @@ exports.create = (text, callback) => {
 };
 
 exports.readAll = (callback) => {
-  var data = _.map(items, (text, id) => {
-    return { id, text };
-  });
-  callback(null, data);
+  // Find out what todos are (we think ->00001 & 00002)
+  // Return an empty array if there are no items in testData
+  // Return an array with the names of all the todos ([00001,00002, etc])
+  var todos = []
+  fs.readdir(exports.dataDir, (err, fileNames) => {
+    if (err) {
+      callback(err, 0);
+    } else {
+      _.map(fileNames, (fileName) => {
+        todos.push(readOne(fileName));
+      })
+    }
+  })
+    // var filePath = path.join(exports.dataDir, `${fileName}.txt`);
+    // fs.readfile(filePath, (err, texts) => {
+    //   if (err) {
+    //     callback(err, 0);
+    //   } else {
+    //     _.map(texts, (text) => {
+    //       console.log(text);
+    //     })
+    //   }
+    // })
+  // })
+  // fileNames.forEach(fileName => {
+  //   console.log(fileName);
+  // }
+  // var data = _.map(items, (text, id) => {
+  //   return { id, text };
+  // });
+  // callback(null, data);
+  //[{ id, text },{ id, text },{ id, text }]
 };
 
 exports.readOne = (id, callback) => {
-  var text = items[id];
-  if (!text) {
-    callback(new Error(`No item with id: ${id}`));
-  } else {
-    callback(null, { id, text });
-  }
+  var filePath = path.join(exports.dataDir, `${id}.txt`);
+  fs.readFile(filePath, 'utf8', (err, text) => {
+    if (err) {
+      callback(err, 0);
+    } else {
+      callback(null, { id, text });
+    }
+  })
+
+  // var text = items[id];
+  // if (!text) {
+  //   callback(new Error(`No item with id: ${id}`));
+  // } else {
+  //   callback(null, { id, text });
+  // }
 };
 
 exports.update = (id, text, callback) => {
