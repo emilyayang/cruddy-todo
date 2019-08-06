@@ -17,15 +17,20 @@ var items = express();
 // readOne
 //   5) should pass a todo object to the callback on success
 exports.create = (text, callback) => {
-  var id = counter.getNextUniqueId();
-  items.post(`/${id}`, function (req, res) {
-    res.send(text)
+  counter.getNextUniqueId((err, id) => {
+    if (err) {
+      callback(err, 0);
+    } else {
+      var filePath = path.join(exports.dataDir, `${id}.txt`);
+      fs.writeFile(filePath, text, (err => {
+        if (err) {
+          throw err;
+        } else {
+          callback(null, { id, text });
+        }
+      }))
+    }
   })
-  // fs.writeFile(exports.dataDir/id, text, callback(null, { id, text }));
-
-  // var id = counter.getNextUniqueId();
-  // items[id] = text;
-  // callback(null, { id, text });
 };
 
 exports.readAll = (callback) => {
