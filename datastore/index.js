@@ -9,7 +9,7 @@ var items = express();
 // Public API - Fix these CRUD functions ///////////////////////////////////////
 // create
 // 1) should create a new file for each todo
-// 2) should use the generated unique id as the filename
+// 2) should use the generated unique id as the id
 // 3) should only save todo text contents in file
 // 4) "before each" hook: cleanTestDatastore
 // ✓ should pass a todo object to the callback on success
@@ -37,29 +37,38 @@ exports.readAll = (callback) => {
   // Find out what todos are (we think ->00001 & 00002)
   // Return an empty array if there are no items in testData
   // Return an array with the names of all the todos ([00001,00002, etc])
-  var todos = []
-  fs.readdir(exports.dataDir, (err, fileNames) => {
+  var todos = [];
+  fs.readdir(exports.dataDir, (err, ids) => {
     if (err) {
       callback(err, 0);
     } else {
-      _.map(fileNames, (fileName) => {
-        todos.push(readOne(fileName));
+      _.map(ids, (id) => {
+        console.log(ids)
+        console.log(id)
+        exports.readOne(id.slice(2), (err, todos) => {
+          console.log(id)
+          if (err) {
+            callback(err, 0);
+          } else {
+            callback(null, todos)
+          }
+        })
       })
     }
   })
-    // var filePath = path.join(exports.dataDir, `${fileName}.txt`);
-    // fs.readfile(filePath, (err, texts) => {
-    //   if (err) {
-    //     callback(err, 0);
-    //   } else {
-    //     _.map(texts, (text) => {
-    //       console.log(text);
-    //     })
-    //   }
-    // })
+  // var filePath = path.join(exports.dataDir, `${id}.txt`);
+  // fs.readFile(filePath, 'utf8', (err, text) => {
+  //   if (err) {
+  //     callback(err, 0);
+  //   } else {
+  //     callback(null, { id, text });
+  //   }
   // })
-  // fileNames.forEach(fileName => {
-  //   console.log(fileName);
+
+
+
+  // ids.forEach(id => {
+  //   console.log(id);
   // }
   // var data = _.map(items, (text, id) => {
   //   return { id, text };
@@ -77,35 +86,37 @@ exports.readOne = (id, callback) => {
       callback(null, { id, text });
     }
   })
-
-  // var text = items[id];
-  // if (!text) {
-  //   callback(new Error(`No item with id: ${id}`));
-  // } else {
-  //   callback(null, { id, text });
-  // }
 };
 
 exports.update = (id, text, callback) => {
-  var item = items[id];
-  if (!item) {
-    callback(new Error(`No item with id: ${id}`));
-  } else {
-    items[id] = text;
-    callback(null, { id, text });
-  }
+  var filePath = path.join(exports.dataDir, `${id}.txt`)
+  // if (!filePath) {
+  //   callback(new Error(`No item with id: ${id}`));
+  // } else {
+  exports.readOne(id, (err) => {
+    if (err) {
+      callback(err, 0);
+    } else {
+      fs.writeFile(filePath, text, (err) => {
+        if (err) {
+          callback(err, 0);
+        } else {
+          callback(null, { id, text });
+        }
+      })
+    }
+  })
 };
 
 exports.delete = (id, callback) => {
-  var item = items[id];
-  delete items[id];
-  if (!item) {
-    // report an error if item not found
-    callback(new Error(`No item with id: ${id}`));
-  } else {
-    callback();
-  }
-};
+  fs.unlink(path.join(exports.dataDir, `${id}.txt`), (err) => {
+    if (err) {
+      callback(err, 0)
+    } else {
+      callback(null, 0);
+    }
+  })
+}
 
 // Config+Initialization code -- DO NOT MODIFY /////////////////////////////////
 
